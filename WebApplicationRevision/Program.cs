@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApplicationRevision;
 using WebApplicationRevision.Contratct;
 using WebApplicationRevision.Filters;
+using WebApplicationRevision.Filters.RessourceFilter;
 using WebApplicationRevision.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers((MvcOptions opt) =>
 {
 	opt.Filters.Add<LogActivityFilter>(); // THIS IS GLOBAL FILTER
+	opt.Filters.Add<CacheFilterFilter>(); // THIS IS GLOBAL FILTER
 });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -22,7 +24,7 @@ builder.Services.AddSwaggerGen();
 //builder.Services.AddKeyedScoped<IWeatherforcastService, TesTService>("key2");
 
 builder.Services.AssemblyRegistartionMethdo();
-
+builder.Services.AddMemoryCache();
 
 // USING FACTORY SO YOU CAN CONTROLL HOW TEH TYPE OF SERVICE WILL BE INSTANITAITE HOW TEH IMPLEMENTATION WILL BE 
 // YOIU CONTROLL HOW TEH SERVICE WILL GET CREATED 
@@ -56,7 +58,6 @@ if (app.Environment.IsDevelopment())
 	app.UseSwaggerUI();
 	app.MapOpenApi();
 }
-
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
