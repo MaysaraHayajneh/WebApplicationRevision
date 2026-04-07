@@ -18,6 +18,7 @@ namespace WebApplicationRevision.Filters.RessourceFilter
         }
         public void OnResourceExecuting(ResourceExecutingContext context)
         {
+
             var key = GenerateCachKey(context);
 
             if (_memoryCache.TryGetValue(key, out IActionResult? result))
@@ -42,21 +43,10 @@ namespace WebApplicationRevision.Filters.RessourceFilter
 
             return $"{request.Path}-{request.QueryString}";
         }
+
     }
 
 
-    // Used for short circuit the request by deciding that it do not need full processing 
-    // add custom caching 
-    public class CacheFilterFilter2 : Attribute, IAsyncResourceFilter
-    {
-        public async Task OnResourceExecutionAsync(ResourceExecutingContext context, ResourceExecutionDelegate next)
-        {
-            context.Result = new ContentResult
-            {
-                Content = "This is cached result"
-            };
-        }
-    }
-
+   
 
 }

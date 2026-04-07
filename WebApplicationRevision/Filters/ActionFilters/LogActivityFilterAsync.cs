@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace WebApplicationRevision.Filters
+namespace WebApplicationRevision.Filters.ActionFilters
 {
 	public class LogActivityFilterAsync : IAsyncActionFilter
 	{
@@ -15,7 +15,6 @@ namespace WebApplicationRevision.Filters
 			logger.LogInformation($"Executing Action ASYNC on {context.ActionDescriptor.DisplayName} on contoller {context.Controller}");
 			await next.Invoke();
 			logger.LogInformation($" Action ASYNC finished {context.ActionDescriptor.DisplayName} on contoller {context.Controller}");
-
 		}
 	}
 }

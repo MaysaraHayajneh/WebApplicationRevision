@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using WebApplicationRevision;
 using WebApplicationRevision.Contratct;
-using WebApplicationRevision.Filters;
+using WebApplicationRevision.Filters.ActionFilters;
+using WebApplicationRevision.Filters.AuthorizationFilter;
 using WebApplicationRevision.Filters.RessourceFilter;
+using WebApplicationRevision.Filters.TestTypeFilter;
 using WebApplicationRevision.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,8 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers((MvcOptions opt) =>
 {
-	opt.Filters.Add<LogActivityFilter>(); // THIS IS GLOBAL FILTER
-	opt.Filters.Add<CacheFilterFilter>(); // THIS IS GLOBAL FILTER
+    opt.Filters.Add<LogActivityFilter>(); // THIS IS GLOBAL FILTER
+    //opt.Filters.Add<CacheFilterFilter>(); // THIS IS GLOBAL FILTER
+    opt.Filters.Add<CacheFilterFilter2>(); // THIS IS GLOBAL FILTER
+                                          //opt.ValueProviderFactories.Add(new CustomValueProviderFactory()); // THIS IS GLOBAL VALUE PROVIDER FACTORY
 });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -24,6 +28,7 @@ builder.Services.AddSwaggerGen();
 //builder.Services.AddKeyedScoped<IWeatherforcastService, TesTService>("key2");
 
 builder.Services.AssemblyRegistartionMethdo();
+builder.Services.AddScoped(typeof(CustomAuthorize));
 builder.Services.AddMemoryCache();
 
 // USING FACTORY SO YOU CAN CONTROLL HOW TEH TYPE OF SERVICE WILL BE INSTANITAITE HOW TEH IMPLEMENTATION WILL BE 
@@ -54,9 +59,9 @@ var app = builder.Build(); // on buildethe DI perform service validation
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-	app.UseSwagger();
-	app.UseSwaggerUI();
-	app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    app.MapOpenApi();
 }
 app.UseHttpsRedirection();
 

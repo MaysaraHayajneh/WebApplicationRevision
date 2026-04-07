@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace WebApplicationRevision.Filters
+namespace WebApplicationRevision.Filters.ActionFilters
 {
 	public class LogSensetiveDataActionFilter : ActionFilterAttribute
 	{

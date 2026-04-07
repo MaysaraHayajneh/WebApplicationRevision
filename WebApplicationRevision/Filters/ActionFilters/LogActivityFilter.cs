@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace WebApplicationRevision.Filters
+namespace WebApplicationRevision.Filters.ActionFilters
 {
 	public class LogActivityFilter : IActionFilter
 	{
@@ -21,7 +21,6 @@ namespace WebApplicationRevision.Filters
 		public void OnActionExecuted(ActionExecutedContext context)
 		{
 			logger.LogInformation($" Action finished {context.ActionDescriptor.DisplayName} on contoller {context.Controller}");
-
 		}
 
 		// The order of filter pipe line i 

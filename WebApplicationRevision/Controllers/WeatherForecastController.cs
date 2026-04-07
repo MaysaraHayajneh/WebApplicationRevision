@@ -3,13 +3,21 @@ using Microsoft.AspNetCore.Mvc;
 using WebApplicationRevision.Contratct;
 using WebApplicationRevision.Filters;
 using WebApplicationRevision.Filters.AuthorizationFilter;
+using WebApplicationRevision.Filters.TestTypeFilter;
 using WebApplicationRevision.Services;
 
 namespace WebApplicationRevision.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    //[CustomAuthorize]
+
+    //[ServiceFilter(typeof(CustomAuthorize))]  // service filter gives you teh ability ti use teh filter as service and get it by using the DI container soo you
+    //can resolve teh dependency in it's constructor easly 
+
+    //[TypeFilter(typeof(CheckLoggedRoleFilter), Arguments = new object[] { "Admin" })]
+    /// TypeFilter  gives you teh ability ti use teh filter as service and get it by using the DI container soo you
+    //can resolve teh dependency in it's constructor easly  with ability to pass argumnets which makes it more flexible 
+
     //[Authorize]
     public class WeatherForecastController : ControllerBase
     {
@@ -26,7 +34,7 @@ namespace WebApplicationRevision.Controllers
         private readonly IWeatherforcastService weatherforcastService;
 
         [HttpGet(Name = "GetWeatherForecast")]
-        [LogSensetiveDataActionFilter]
+        //[LogSensetiveDataActionFilter]
         public IEnumerable<WeatherForecast> GetForecasts()
         {
             //var service = serviceProvider.GetKeyedService<IWeatherforcastService>("key1");
