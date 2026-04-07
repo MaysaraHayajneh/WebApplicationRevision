@@ -3,7 +3,9 @@ using WebApplicationRevision;
 using WebApplicationRevision.Contratct;
 using WebApplicationRevision.Filters.ActionFilters;
 using WebApplicationRevision.Filters.AuthorizationFilter;
+using WebApplicationRevision.Filters.ExceptionFilter;
 using WebApplicationRevision.Filters.RessourceFilter;
+using WebApplicationRevision.Filters.ResultFiltet;
 using WebApplicationRevision.Filters.TestTypeFilter;
 using WebApplicationRevision.Services;
 
@@ -13,10 +15,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers((MvcOptions opt) =>
 {
-    opt.Filters.Add<LogActivityFilter>(); // THIS IS GLOBAL FILTER
-    //opt.Filters.Add<CacheFilterFilter>(); // THIS IS GLOBAL FILTER
-    opt.Filters.Add<CacheFilterFilter2>(); // THIS IS GLOBAL FILTER
-                                          //opt.ValueProviderFactories.Add(new CustomValueProviderFactory()); // THIS IS GLOBAL VALUE PROVIDER FACTORY
+	//opt.Filters.Add<LogActivityFilter>(); // THIS IS GLOBAL FILTER
+	opt.Filters.Add<LogActivityFilterAsync>(); // THIS IS GLOBAL FILTER
+											   //opt.Filters.Add<CacheFilterFilter>(); // THIS IS GLOBAL FILTER
+											   //opt.Filters.Add<CacheFilterFilter2>(); // THIS IS GLOBAL FILTER
+											   //opt.ValueProviderFactories.Add(new CustomValueProviderFactory()); // THIS IS GLOBAL VALUE PROVIDER FACTORY
+
+	opt.Filters.Add<GlobalExceptionFilter>(); // THIS IS GLOBAL FILTER
+	opt.Filters.Add<ResponseWrappingResultFilter>(); // THIS IS GLOBAL FILTER
+
 });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -31,6 +38,11 @@ builder.Services.AssemblyRegistartionMethdo();
 builder.Services.AddScoped(typeof(CustomAuthorize));
 builder.Services.AddMemoryCache();
 
+
+//builder.Services.Configure<ApiBehaviorOptions>((ApiBehaviorOptions opt) =>
+//{
+//	opt.SuppressModelStateInvalidFilter = true;
+//});
 // USING FACTORY SO YOU CAN CONTROLL HOW TEH TYPE OF SERVICE WILL BE INSTANITAITE HOW TEH IMPLEMENTATION WILL BE 
 // YOIU CONTROLL HOW TEH SERVICE WILL GET CREATED 
 
@@ -59,9 +71,9 @@ var app = builder.Build(); // on buildethe DI perform service validation
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    app.MapOpenApi();
+	app.UseSwagger();
+	app.UseSwaggerUI();
+	app.MapOpenApi();
 }
 app.UseHttpsRedirection();
 

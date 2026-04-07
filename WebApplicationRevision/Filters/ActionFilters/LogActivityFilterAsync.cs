@@ -2,19 +2,35 @@
 
 namespace WebApplicationRevision.Filters.ActionFilters
 {
-	public class LogActivityFilterAsync : IAsyncActionFilter
+	public class LogActivityFilterAsync : IAsyncActionFilter, IOrderedFilter
 	{
-		private readonly ILogger<LogActivityFilterAsync> logger;
+		private readonly ILogger<LogActivityFilterAsync> _logger;
 
 		public LogActivityFilterAsync(ILogger<LogActivityFilterAsync> logger)
 		{
-			this.logger = logger;
+			_logger = logger;
 		}
+
+		public int Order => 1;
+
 		public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
 		{
-			logger.LogInformation($"Executing Action ASYNC on {context.ActionDescriptor.DisplayName} on contoller {context.Controller}");
-			await next.Invoke();
-			logger.LogInformation($" Action ASYNC finished {context.ActionDescriptor.DisplayName} on contoller {context.Controller}");
+			_logger.LogInformation("Executing Action {ActionName} with Arguments {@Arguments}",
+				context.ActionDescriptor.DisplayName, context.ActionArguments);
+
+			var executedContex = await next.Invoke();
+
+			if (executedContex.Exception is null)
+			{
+				_logger.LogInformation("Action {ActionName} with Arguments {@Arguments} Executed successfuly",
+				context.ActionDescriptor.DisplayName, context.ActionArguments);
+			}
+			else
+			{
+				_logger.LogInformation("Action  {ActionName} with Arguments {@Arguments} Executed Wrongly",
+			context.ActionDescriptor.DisplayName, context.ActionArguments);
+			}
+
 		}
 	}
 }

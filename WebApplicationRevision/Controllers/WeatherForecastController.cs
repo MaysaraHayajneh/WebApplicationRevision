@@ -35,10 +35,10 @@ namespace WebApplicationRevision.Controllers
 
         [HttpGet(Name = "GetWeatherForecast")]
         //[LogSensetiveDataActionFilter]
-        public IEnumerable<WeatherForecast> GetForecasts()
+        public IActionResult GetForecasts()
         {
             //var service = serviceProvider.GetKeyedService<IWeatherforcastService>("key1");
-            return weatherforcastService.GetForecasts();
+            return Ok(weatherforcastService.GetForecasts());
         }
     }
 }
