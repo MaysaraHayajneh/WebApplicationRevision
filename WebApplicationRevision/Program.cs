@@ -7,6 +7,7 @@ using WebApplicationRevision.Filters.ExceptionFilter;
 using WebApplicationRevision.Filters.RessourceFilter;
 using WebApplicationRevision.Filters.ResultFiltet;
 using WebApplicationRevision.Filters.TestTypeFilter;
+using WebApplicationRevision.Middlewares;
 using WebApplicationRevision.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,14 +16,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers((MvcOptions opt) =>
 {
-	//opt.Filters.Add<LogActivityFilter>(); // THIS IS GLOBAL FILTER
-	opt.Filters.Add<LogActivityFilterAsync>(); // THIS IS GLOBAL FILTER
-											   //opt.Filters.Add<CacheFilterFilter>(); // THIS IS GLOBAL FILTER
-											   //opt.Filters.Add<CacheFilterFilter2>(); // THIS IS GLOBAL FILTER
-											   //opt.ValueProviderFactories.Add(new CustomValueProviderFactory()); // THIS IS GLOBAL VALUE PROVIDER FACTORY
+    //opt.Filters.Add<LogActivityFilter>(); // THIS IS GLOBAL FILTER
+    opt.Filters.Add<LogActivityFilterAsync>(); // THIS IS GLOBAL FILTER
+    opt.Filters.Add<CacheFilterFilter>(); // THIS IS GLOBAL FILTER
+    opt.Filters.Add<CacheFilterFilter2>(); // THIS IS GLOBAL FILTER
+                                           //opt.ValueProviderFactories.Add(new CustomValueProviderFactory()); // THIS IS GLOBAL VALUE PROVIDER FACTORY
 
-	opt.Filters.Add<GlobalExceptionFilter>(); // THIS IS GLOBAL FILTER
-	opt.Filters.Add<ResponseWrappingResultFilter>(); // THIS IS GLOBAL FILTER
+    opt.Filters.Add<GlobalExceptionFilter>(); // THIS IS GLOBAL FILTER
+    opt.Filters.Add<ResponseWrappingResultFilter>(); // THIS IS GLOBAL FILTER
+    opt.Filters.Add<CustomAuthorize>(); // THIS IS GLOBAL FILTER
 
 });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -36,8 +38,17 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AssemblyRegistartionMethdo();
 builder.Services.AddScoped(typeof(CustomAuthorize));
+builder.Services.AddSingleton<RequestLoggingMiddleWare>();
 builder.Services.AddMemoryCache();
 
+
+// factory pattern
+builder.Services.AddScoped<IWeatherforcastService>((IServiceProvider sp) =>
+{
+    var congig = sp.GetRequiredService<IConfiguration>();
+    var useStrip = congig.GetValue<bool>("UseStripService");
+    return useStrip ? sp.GetRequiredService<TesTService>() : sp.GetRequiredService<TesTService>();
+});
 
 //builder.Services.Configure<ApiBehaviorOptions>((ApiBehaviorOptions opt) =>
 //{
@@ -67,13 +78,16 @@ builder.Services.AddMemoryCache();
 
 
 var app = builder.Build(); // on buildethe DI perform service validation 
-
+app.UseResponseCaching();
 // Configure the HTTP request pipeline.
+app.UseRequestLogging();
+app.UseExceptionHandler("/error"); // THIS IS GLOBAL EXCEPTION HANDLER
+
 if (app.Environment.IsDevelopment())
 {
-	app.UseSwagger();
-	app.UseSwaggerUI();
-	app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    app.MapOpenApi();
 }
 app.UseHttpsRedirection();
 

@@ -31,11 +31,11 @@ namespace WebApplicationRevision.Filters.AuthorizationFilter
             }
             else
             {
-                context.Result = new UnauthorizedObjectResult(new ProblemDetails()
-                {
-                    Status = StatusCodes.Status401Unauthorized,
-                    Title = "Unauthorized , INvalid Api key",
-                });
+                //context.Result = new UnauthorizedObjectResult(new ProblemDetails()
+                //{
+                //    Status = StatusCodes.Status401Unauthorized,
+                //    Title = "Unauthorized , INvalid Api key",
+                //});
             }
         }
     }

@@ -2,7 +2,7 @@
 
 namespace WebApplicationRevision.Filters.ActionFilters
 {
-	public class LogActivityFilterAsync : IAsyncActionFilter, IOrderedFilter
+	public class LogActivityFilterAsync : IAsyncActionFilter
 	{
 		private readonly ILogger<LogActivityFilterAsync> _logger;
 
@@ -11,7 +11,6 @@ namespace WebApplicationRevision.Filters.ActionFilters
 			_logger = logger;
 		}
 
-		public int Order => 1;
 
 		public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
 		{
