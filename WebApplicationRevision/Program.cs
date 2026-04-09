@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using WebApplicationRevision;
 using WebApplicationRevision.Contratct;
 using WebApplicationRevision.Filters.ActionFilters;
@@ -6,14 +7,15 @@ using WebApplicationRevision.Filters.AuthorizationFilter;
 using WebApplicationRevision.Filters.ExceptionFilter;
 using WebApplicationRevision.Filters.RessourceFilter;
 using WebApplicationRevision.Filters.ResultFiltet;
-using WebApplicationRevision.Filters.TestTypeFilter;
 using WebApplicationRevision.Middlewares;
+using WebApplicationRevision.OptionPatternsClasses;
+using WebApplicationRevision.OptionPatternsClasses.Validators;
 using WebApplicationRevision.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+#region Filters
 // Add services to the container.
-
 builder.Services.AddControllers((MvcOptions opt) =>
 {
     //opt.Filters.Add<LogActivityFilter>(); // THIS IS GLOBAL FILTER
@@ -27,7 +29,11 @@ builder.Services.AddControllers((MvcOptions opt) =>
     opt.Filters.Add<CustomAuthorize>(); // THIS IS GLOBAL FILTER
 
 });
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+#endregion
+
+#region services
+
+
 builder.Services.AddOpenApi();
 
 builder.Services.AddSwaggerGen();
@@ -76,6 +82,23 @@ builder.Services.AddScoped<IWeatherforcastService>((IServiceProvider sp) =>
 //builder.Services.AddSingleton<ITestService>(ws);
 //builder.Services.AddSingleton<IWeatherforcastService>(ws);
 
+#endregion
+
+#region Configuration
+
+builder.Services.AddOptions<WeatherOptions>()
+    .BindConfiguration(WeatherOptions.SectionName, (BinderOptions opt) =>
+    {
+        opt.ErrorOnUnknownConfiguration = false; // enable an compile error if a key missing in configuration while binding
+    }).ValidateDataAnnotations() // enabling data annotaion validation
+       .ValidateOnStart();//for the options class and if the validation failed it will throw an exception on application start up and prevent the application from running
+
+
+builder.Services.AddSingleton<IValidateOptions<WeatherOptions>, WeatherOptionsValidator>();
+
+#endregion
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
 
 var app = builder.Build(); // on buildethe DI perform service validation 
 app.UseResponseCaching();
@@ -83,7 +106,7 @@ app.UseResponseCaching();
 app.UseRequestLogging();
 app.UseExceptionHandler("/error"); // THIS IS GLOBAL EXCEPTION HANDLER
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
