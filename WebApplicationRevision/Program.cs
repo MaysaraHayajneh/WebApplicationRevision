@@ -18,21 +18,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers((MvcOptions opt) =>
 {
-    //opt.Filters.Add<LogActivityFilter>(); // THIS IS GLOBAL FILTER
-    opt.Filters.Add<LogActivityFilterAsync>(); // THIS IS GLOBAL FILTER
-    opt.Filters.Add<CacheFilterFilter>(); // THIS IS GLOBAL FILTER
-    opt.Filters.Add<CacheFilterFilter2>(); // THIS IS GLOBAL FILTER
-                                           //opt.ValueProviderFactories.Add(new CustomValueProviderFactory()); // THIS IS GLOBAL VALUE PROVIDER FACTORY
+	//opt.Filters.Add<LogActivityFilter>(); // THIS IS GLOBAL FILTER
+	opt.Filters.Add<LogActivityFilterAsync>(); // THIS IS GLOBAL FILTER
+	opt.Filters.Add<CacheFilterFilter>(); // THIS IS GLOBAL FILTER
+	opt.Filters.Add<CacheFilterFilter2>(); // THIS IS GLOBAL FILTER
+										   //opt.ValueProviderFactories.Add(new CustomValueProviderFactory()); // THIS IS GLOBAL VALUE PROVIDER FACTORY
 
-    opt.Filters.Add<GlobalExceptionFilter>(); // THIS IS GLOBAL FILTER
-    opt.Filters.Add<ResponseWrappingResultFilter>(); // THIS IS GLOBAL FILTER
-    opt.Filters.Add<CustomAuthorize>(); // THIS IS GLOBAL FILTER
+	opt.Filters.Add<GlobalExceptionFilter>(); // THIS IS GLOBAL FILTER
+	opt.Filters.Add<ResponseWrappingResultFilter>(); // THIS IS GLOBAL FILTER
+	opt.Filters.Add<CustomAuthorize>(); // THIS IS GLOBAL FILTER
 
 });
 #endregion
 
 #region services
-
 
 builder.Services.AddOpenApi();
 
@@ -51,15 +50,16 @@ builder.Services.AddMemoryCache();
 // factory pattern
 builder.Services.AddScoped<IWeatherforcastService>((IServiceProvider sp) =>
 {
-    var congig = sp.GetRequiredService<IConfiguration>();
-    var useStrip = congig.GetValue<bool>("UseStripService");
-    return useStrip ? sp.GetRequiredService<TesTService>() : sp.GetRequiredService<TesTService>();
+	var congig = sp.GetRequiredService<IConfiguration>();
+	var useStrip = congig.GetValue<bool>("UseStripService");
+	return useStrip ? sp.GetRequiredService<TesTService>() : sp.GetRequiredService<TesTService>();
 });
 
-//builder.Services.Configure<ApiBehaviorOptions>((ApiBehaviorOptions opt) =>
-//{
-//	opt.SuppressModelStateInvalidFilter = true;
-//});
+builder.Services.Configure<ApiBehaviorOptions>((ApiBehaviorOptions opt) =>
+{
+	opt.SuppressModelStateInvalidFilter = true;
+});
+
 // USING FACTORY SO YOU CAN CONTROLL HOW TEH TYPE OF SERVICE WILL BE INSTANITAITE HOW TEH IMPLEMENTATION WILL BE 
 // YOIU CONTROLL HOW TEH SERVICE WILL GET CREATED 
 
@@ -87,18 +87,69 @@ builder.Services.AddScoped<IWeatherforcastService>((IServiceProvider sp) =>
 #region Configuration
 
 builder.Services.AddOptions<WeatherOptions>()
-    .BindConfiguration(WeatherOptions.SectionName, (BinderOptions opt) =>
-    {
-        opt.ErrorOnUnknownConfiguration = false; // enable an compile error if a key missing in configuration while binding
-    }).ValidateDataAnnotations() // enabling data annotaion validation
-       .ValidateOnStart();//for the options class and if the validation failed it will throw an exception on application start up and prevent the application from running
-
+	.BindConfiguration(WeatherOptions.SectionName, (BinderOptions opt) =>
+	{
+		opt.ErrorOnUnknownConfiguration = false; // enable an compile error if a key missing in configuration while binding
+	}).ValidateDataAnnotations() // enabling data annotaion validation
+	   .ValidateOnStart();//for the options class and if the validation failed it will throw an exception on application start up and prevent the application from running
 
 builder.Services.AddSingleton<IValidateOptions<WeatherOptions>, WeatherOptionsValidator>();
 
+// ADD NEW CONFIGURATION FILE
+
+builder.Configuration.AddJsonFile("CustomConfig.json",false,true); // giveing the name without full path means the file in same app folder
+
+
+// => NAMED OPTIONS
+
+builder.Services.AddOptions<NotificationOptions>(NotificationOptions.Email)
+	.BindConfiguration("NotificationOptions:Email", (BinderOptions opt) =>
+	{
+		opt.ErrorOnUnknownConfiguration = false;
+
+	}).ValidateDataAnnotations()
+	.ValidateOnStart();
+
+builder.Services.AddOptions<NotificationOptions>(NotificationOptions.SMS)
+	.BindConfiguration("NotificationOptions:Sms", (BinderOptions opt) =>
+	{
+		opt.ErrorOnUnknownConfiguration = false;
+
+	}).ValidateDataAnnotations()
+	.ValidateOnStart();
+
+
+// POST CONFIGURE
+// TO CHANGE TEH OPTIONS AFTER THEY GET CONFIGURE AND BINDED 
+// IT HELPS IF I WILL GIVE DEFAULT VALUES BASED ON OTEHR CONFIG VALUES
+//READ CONFIG VALUES FROM OTHER COFIGURED Values
+builder.Services.PostConfigure<NotificationOptions>("Sms", (opt) =>
+{
+	opt.Sender ??= "dasdas";
+});
+
+// POST CONFIGURE
+// TO CHANGE TEH OPTIONS AFTER THEY GET CONFIGURE AND BINDED 
+// IT HELPS IF I WILL GIVE DEFAULT VALUES BASED ON OTEHR CONFIG VALUES
+//READ CONFIG VALUES FROM OTHER COFIGURED Values
+
+builder.Services.PostConfigure<WeatherOptions>((WeatherOptions opt) =>
+{
+	opt.Summury = opt.Teampreature switch
+	{
+		<= 10 => "Cold",
+		<= 25 => "Warm",
+		_ => "Hot"
+	};
+});
+
+
+/// ACCESS CONFIGURATION FROM ICONFIGURATION BEFORE IOPTIONS IS AVALILABLE BEFORE DI BUILD
+/// 
+builder.Configuration.GetSection(WeatherOptions.SectionName)
+	.Get<WeatherOptions>();
 #endregion
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-
 
 var app = builder.Build(); // on buildethe DI perform service validation 
 app.UseResponseCaching();
@@ -108,9 +159,9 @@ app.UseExceptionHandler("/error"); // THIS IS GLOBAL EXCEPTION HANDLER
 
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    app.MapOpenApi();
+	app.UseSwagger();
+	app.UseSwaggerUI();
+	app.MapOpenApi();
 }
 app.UseHttpsRedirection();
 
