@@ -1,7 +1,14 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Options;
 using WebApplicationRevision;
+using WebApplicationRevision.AuthunticationHndlerFolder;
+using WebApplicationRevision.Constants.enums;
 using WebApplicationRevision.Contratct;
+using WebApplicationRevision.CustomModelBinding;
 using WebApplicationRevision.Filters.ActionFilters;
 using WebApplicationRevision.Filters.AuthorizationFilter;
 using WebApplicationRevision.Filters.ExceptionFilter;
@@ -11,8 +18,17 @@ using WebApplicationRevision.Middlewares;
 using WebApplicationRevision.OptionPatternsClasses;
 using WebApplicationRevision.OptionPatternsClasses.Validators;
 using WebApplicationRevision.Services;
+using WebApplicationRevision.Services.Contract;
 
 var builder = WebApplication.CreateBuilder(args);
+
+#region Logging
+// => ADD LOGGING PROVIDER (LOGGING SINK)
+builder.Services.AddLogging((ILoggingBuilder logBuilder) =>
+{
+	logBuilder.AddDebug();
+});
+#endregion
 
 #region Filters
 // Add services to the container.
@@ -20,19 +36,28 @@ builder.Services.AddControllers((MvcOptions opt) =>
 {
 	//opt.Filters.Add<LogActivityFilter>(); // THIS IS GLOBAL FILTER
 	opt.Filters.Add<LogActivityFilterAsync>(); // THIS IS GLOBAL FILTER
-	opt.Filters.Add<CacheFilterFilter>(); // THIS IS GLOBAL FILTER
-	opt.Filters.Add<CacheFilterFilter2>(); // THIS IS GLOBAL FILTER
-										   //opt.ValueProviderFactories.Add(new CustomValueProviderFactory()); // THIS IS GLOBAL VALUE PROVIDER FACTORY
+											   //opt.Filters.Add<CacheFilterFilter>(); // THIS IS GLOBAL FILTER
+											   //opt.Filters.Add<CacheFilterFilter2>(); // THIS IS GLOBAL FILTER
+											   //opt.ValueProviderFactories.Add(new CustomValueProviderFactory()); // THIS IS GLOBAL VALUE PROVIDER FACTORY
 
 	opt.Filters.Add<GlobalExceptionFilter>(); // THIS IS GLOBAL FILTER
 	opt.Filters.Add<ResponseWrappingResultFilter>(); // THIS IS GLOBAL FILTER
-	opt.Filters.Add<CustomAuthorize>(); // THIS IS GLOBAL FILTER
+													 //opt.Filters.Add<CustomAuthorize>(); // THIS IS GLOBAL FILTER
 
+
+	opt.ValueProviderFactories.Insert(0, new CookieValueProviderFactory());
 });
 #endregion
 
 #region services
 
+builder.Services.AddDbContext<AppDbContext>((DbContextOptionsBuilder opt) =>
+{
+	opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), (SqlServerDbContextOptionsBuilder sqlop) =>
+	{
+		sqlop.EnableRetryOnFailure();
+	});
+});
 builder.Services.AddOpenApi();
 
 builder.Services.AddSwaggerGen();
@@ -82,6 +107,26 @@ builder.Services.Configure<ApiBehaviorOptions>((ApiBehaviorOptions opt) =>
 //builder.Services.AddSingleton<ITestService>(ws);
 //builder.Services.AddSingleton<IWeatherforcastService>(ws);
 
+
+// => ADD KEYED SERVICES 
+
+builder.Services.AddKeyedScoped<INotificationService, EmailNotificationService>(NotificationEnum.EMAIL);
+builder.Services.AddKeyedScoped<INotificationService, SmsNotificationService>(NotificationEnum.SMS);
+
+
+
+#endregion
+
+#region Authuntecation
+
+builder.Services.AddAuthentication()
+	.AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("Basic", null);
+
+#endregion
+
+#region CustomModelBinding
+
+
 #endregion
 
 #region Configuration
@@ -97,7 +142,7 @@ builder.Services.AddSingleton<IValidateOptions<WeatherOptions>, WeatherOptionsVa
 
 // ADD NEW CONFIGURATION FILE
 
-builder.Configuration.AddJsonFile("CustomConfig.json",false,true); // giveing the name without full path means the file in same app folder
+builder.Configuration.AddJsonFile("CustomConfig.json", false, true); // giveing the name without full path means the file in same app folder
 
 
 // => NAMED OPTIONS
@@ -149,6 +194,8 @@ builder.Services.PostConfigure<WeatherOptions>((WeatherOptions opt) =>
 builder.Configuration.GetSection(WeatherOptions.SectionName)
 	.Get<WeatherOptions>();
 #endregion
+
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
 var app = builder.Build(); // on buildethe DI perform service validation 
@@ -164,7 +211,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 	app.MapOpenApi();
 }
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

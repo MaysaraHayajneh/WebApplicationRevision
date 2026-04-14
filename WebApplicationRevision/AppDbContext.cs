@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WebApplicationRevision.Models;
 
 namespace WebApplicationRevision
 {
@@ -11,7 +12,10 @@ namespace WebApplicationRevision
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
+			modelBuilder.Entity<Product>();
 			base.OnModelCreating(modelBuilder);
+
 		}
+
 	}
 }
