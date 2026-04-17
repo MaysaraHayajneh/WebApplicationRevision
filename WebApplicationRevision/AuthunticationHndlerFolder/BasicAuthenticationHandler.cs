@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.Extensions.Options;
 using System.Buffers.Text;
+using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 
@@ -17,7 +19,6 @@ namespace WebApplicationRevision.AuthunticationHndlerFolder
 		{
 			if (!Request.Headers.ContainsKey("Authorization"))
 				return Task.FromResult(AuthenticateResult.NoResult());
-
 
 			var authorizationHeader = Request.Headers.Authorization.ToString();
 
@@ -37,9 +38,18 @@ namespace WebApplicationRevision.AuthunticationHndlerFolder
 
 			if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password)) return Task.FromResult(AuthenticateResult.NoResult());
 
-			if (string.Equals("maysara", username) && string.Equals(password, "12345")) return
-					Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(new System.Security.Claims.ClaimsPrincipal(), "basic")));
+			if (string.Equals("maysara", username) && string.Equals(password, "12345"))
+			{
+				var principal = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+				{
+					new Claim(ClaimTypes.NameIdentifier, username),
+					new Claim (ClaimTypes.Name,username)
 
+				}, AuthenticationSchemes.Basic.ToString()));
+
+				var authenticationTicket = new AuthenticationTicket(principal, AuthenticationSchemes.Basic.ToString());
+				return Task.FromResult(AuthenticateResult.Success(authenticationTicket));
+			}
 			return Task.FromResult(AuthenticateResult.Fail("Invalid credentials"));
 		}
 	}

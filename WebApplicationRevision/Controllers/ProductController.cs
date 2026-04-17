@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using WebApplicationRevision.Models;
 
 namespace WebApplicationRevision.Controllers
@@ -26,7 +27,10 @@ namespace WebApplicationRevision.Controllers
 		[HttpGet]
 		[Route("{id:int}")]
 		public IActionResult Get(int id, [FromHeader(Name = "Accept-Language")] string lang)
-		{
+		{ 
+			var identity = User.Identity as ClaimsIdentity;
+			var username = identity?.Claims.First(x => x.Type == ClaimTypes.NameIdentifier);
+
 			Product products = appDbContext.Set<Product>().Where(x => x.Id == id).FirstOrDefault();
 
 			return Ok(products);

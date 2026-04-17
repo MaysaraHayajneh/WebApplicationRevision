@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -12,7 +11,6 @@ using WebApplicationRevision.CustomModelBinding;
 using WebApplicationRevision.Filters.ActionFilters;
 using WebApplicationRevision.Filters.AuthorizationFilter;
 using WebApplicationRevision.Filters.ExceptionFilter;
-using WebApplicationRevision.Filters.RessourceFilter;
 using WebApplicationRevision.Filters.ResultFiltet;
 using WebApplicationRevision.Middlewares;
 using WebApplicationRevision.OptionPatternsClasses;
@@ -119,15 +117,12 @@ builder.Services.AddKeyedScoped<INotificationService, SmsNotificationService>(No
 
 #region Authuntecation
 
+// ==> BASIC AUTHENTICATION
 builder.Services.AddAuthentication()
-	.AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("Basic", null);
+	.AddScheme< AuthenticationSchemeOptions, BasicAuthenticationHandler>("Basic", null);
 
 #endregion
 
-#region CustomModelBinding
-
-
-#endregion
 
 #region Configuration
 
