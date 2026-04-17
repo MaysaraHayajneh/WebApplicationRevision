@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using WebApplicationRevision.Models;
@@ -15,6 +16,7 @@ namespace WebApplicationRevision.Controllers
 			this.appDbContext = appDbContext;
 		}
 
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 		[HttpGet]
 		[Route("")]
 		public IActionResult GetAll()
@@ -27,7 +29,7 @@ namespace WebApplicationRevision.Controllers
 		[HttpGet]
 		[Route("{id:int}")]
 		public IActionResult Get(int id, [FromHeader(Name = "Accept-Language")] string lang)
-		{ 
+		{
 			var identity = User.Identity as ClaimsIdentity;
 			var username = identity?.Claims.First(x => x.Type == ClaimTypes.NameIdentifier);
 
@@ -36,6 +38,8 @@ namespace WebApplicationRevision.Controllers
 			return Ok(products);
 		}
 		[HttpPost]
+
+
 		[Route("")]
 		public IActionResult Get(Product product)
 		{

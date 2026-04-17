@@ -47,7 +47,7 @@ namespace WebApplicationRevision.AuthunticationHndlerFolder
 
 				}, AuthenticationSchemes.Basic.ToString()));
 
-				var authenticationTicket = new AuthenticationTicket(principal, AuthenticationSchemes.Basic.ToString());
+				var authenticationTicket = new AuthenticationTicket(principal,AuthenticationSchemes.Basic.ToString());
 				return Task.FromResult(AuthenticateResult.Success(authenticationTicket));
 			}
 			return Task.FromResult(AuthenticateResult.Fail("Invalid credentials"));

@@ -1,8 +1,13 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Server.HttpSys;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.Net;
+using System.Text;
 using WebApplicationRevision;
 using WebApplicationRevision.AuthunticationHndlerFolder;
 using WebApplicationRevision.Constants.enums;
@@ -117,9 +122,24 @@ builder.Services.AddKeyedScoped<INotificationService, SmsNotificationService>(No
 
 #region Authuntecation
 
-// ==> BASIC AUTHENTICATION
+var jwtOptions = builder.Configuration.GetSection(JWTOptions.SectionName).Get<JWTOptions>();
 builder.Services.AddAuthentication()
-	.AddScheme< AuthenticationSchemeOptions, BasicAuthenticationHandler>("Basic", null);
+	// ==> BASIC AUTHENTICATION
+	.AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("Basic", null)
+	// => BEARER TOKEN AUTHENTICATION 
+	.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, (JwtBearerOptions opt) =>
+	{
+		opt.SaveToken = true;
+		opt.TokenValidationParameters = new TokenValidationParameters()
+		{
+			ValidateIssuer = true,
+			ValidIssuer = jwtOptions?.Issuer,
+			ValidateAudience = true,
+			ValidAudience = jwtOptions?.Audience,
+			ValidateIssuerSigningKey = true,
+			IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey))
+		};
+	});
 
 #endregion
 
@@ -158,6 +178,13 @@ builder.Services.AddOptions<NotificationOptions>(NotificationOptions.SMS)
 	}).ValidateDataAnnotations()
 	.ValidateOnStart();
 
+builder.Services.AddOptions<JWTOptions>()
+	.BindConfiguration(JWTOptions.SectionName, (op) =>
+	{
+		op.ErrorOnUnknownConfiguration = true;
+	}).ValidateOnStart();
+
+builder.Services.AddSingleton<IValidateOptions<JWTOptions>, JWTOptionsValidator>();
 
 // POST CONFIGURE
 // TO CHANGE TEH OPTIONS AFTER THEY GET CONFIGURE AND BINDED 

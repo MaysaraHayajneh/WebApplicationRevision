@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Options;
 
 namespace WebApplicationRevision.OptionPatternsClasses.Validators
 {
@@ -6,7 +7,7 @@ namespace WebApplicationRevision.OptionPatternsClasses.Validators
     {
         public ValidateOptionsResult Validate(string? name, WeatherOptions options)
         {
-
+            
             var fauilers = new List<string>();
 
             if (string.IsNullOrWhiteSpace(options.City))
